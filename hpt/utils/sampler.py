@@ -51,7 +51,7 @@ def create_indices(
 
 def get_val_mask(n_episodes, val_ratio, seed=0):
     val_mask = np.zeros(n_episodes, dtype=bool)
-    if val_ratio <= 0:
+    if val_ratio <= 0 or n_episodes <= 0:
         return val_mask
 
     # have at least 1 episode for validation, and at least 1 episode for train
@@ -98,9 +98,13 @@ class SequenceSampler:
         if keys is None:
             keys = list(replay_buffer.keys())
 
-        episode_ends = replay_buffer.episode_ends[:]
+        episode_ends = replay_buffer.episode_ends
+        # 处理zarr Array和numpy array
+        if hasattr(episode_ends, '__getitem__'):
+            episode_ends = episode_ends[:]
+        
         if episode_mask is None:
-            episode_mask = np.ones(episode_ends.shape, dtype=bool)
+            episode_mask = np.ones(len(episode_ends), dtype=bool)
 
         if np.any(episode_mask):
             indices = create_indices(
@@ -111,7 +115,7 @@ class SequenceSampler:
                 episode_mask=episode_mask,
             )
         else:
-            indices = np.zeros((0, 4), dtype=np.int64)
+            indices = np.zeros((0, 5), dtype=np.int64)
 
         # (buffer_start_idx, buffer_end_idx, sample_start_idx, sample_end_idx)
         self.indices = indices

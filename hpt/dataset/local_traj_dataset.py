@@ -334,15 +334,22 @@ class LocalTrajDataset:
             seed (int): The random seed for splitting the dataset.
         """
         # split into train and test sets
-        self.val_mask = get_val_mask(n_episodes=self.replay_buffer.n_episodes, val_ratio=val_ratio, seed=seed)
-        self.train_mask = ~self.val_mask
-        if self.train_mask.sum() == 0:
-            self.train_mask = self.val_mask
+        n_episodes = self.replay_buffer.n_episodes
+        if n_episodes == 0:
+            # No episodes available, create empty masks
+            self.val_mask = np.zeros(0, dtype=bool)
+            self.train_mask = np.zeros(0, dtype=bool)
+        else:
+            self.val_mask = get_val_mask(n_episodes=n_episodes, val_ratio=val_ratio, seed=seed)
+            self.train_mask = ~self.val_mask
+            if self.train_mask.sum() == 0:
+                self.train_mask = self.val_mask
 
-        # considering hyperparameters and masking
-        n_episodes = int(self.data_ratio * min(self.episode_cnt, self.replay_buffer.n_episodes))
-        self.val_mask[n_episodes:] = False
-        self.train_mask[n_episodes:] = False
+            # considering hyperparameters and masking
+            n_episodes = int(self.data_ratio * min(self.episode_cnt, n_episodes))
+            if n_episodes > 0:
+                self.val_mask = self.val_mask[:n_episodes]
+                self.train_mask = self.train_mask[:n_episodes]
 
         # normalize and create sampler
         self.sampler = SequenceSampler(

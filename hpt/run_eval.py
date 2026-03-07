@@ -27,6 +27,11 @@ def run_eval(cfg):
 
     # initialize policy
     policy = hydra.utils.instantiate(cfg.network).to(device)
+    
+    # Set head dimensions manually since we don't load dataset
+    cfg.head["input_dim"] = policy.embed_dim
+    cfg.head["output_dim"] = 4  # MetaWorld action dimension
+    
     policy.init_domain_stem(domain, cfg.stem)
     policy.init_domain_head(domain, None, cfg.head)
     policy.finalize_modules()

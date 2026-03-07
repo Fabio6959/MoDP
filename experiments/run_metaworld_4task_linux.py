@@ -13,7 +13,8 @@ print(f"RUNNING {script_name}!")
 env = os.environ.copy()
 env["HYDRA_FULL_ERROR"] = "1"
 env["CUDA_VISIBLE_DEVICES"] = "0"
-env["WANDB_MODE"] = "offline"
+env["WANDB_MODE"] = "online"
+env["WANDB_API_KEY"] = "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"
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env_path = os.path.join(project_root, "env", "mujoco")
@@ -32,6 +33,9 @@ train_cmd = [
     f"+tasks=metaworld_4task_linux",
     f"train.freeze_trunk=False",
     f"dataset.regenerate=False",
+    f"train.total_iters=100",
+    f"dataloader.num_workers=0",
+    f"val_dataloader.num_workers=0",
     f"output_dir=output/{date_str}{postfix}",
 ]
 

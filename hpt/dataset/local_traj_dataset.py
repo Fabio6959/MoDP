@@ -202,9 +202,10 @@ class LocalTrajDataset:
                 self.replay_buffer = ReplayBuffer.create_from_path(dataset_path)
             else:
                 os.system(f"rm -rf {dataset_path}")
-                from zarr.storage import DirectoryStore
-                storage = DirectoryStore(path=dataset_path)
-                self.replay_buffer = ReplayBuffer.create_empty_zarr(storage=storage)
+                # 直接使用zarr.open创建存储
+                self.replay_buffer = ReplayBuffer.create_empty_zarr()
+                # 保存到磁盘
+                self.replay_buffer.save_to_path(dataset_path)
         else:
             if load_from_cache:
                 self.replay_buffer = ReplayBuffer.copy_from_path(dataset_path)

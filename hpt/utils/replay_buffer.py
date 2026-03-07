@@ -137,7 +137,13 @@ class ReplayBuffer:
         Open a on-disk zarr directly (for dataset larger than memory).
         Slower.
         """
-        group = zarr.open_group(os.path.expanduser(zarr_path), mode=mode)
+        # 兼容不同zarr版本的open_group
+        try:
+            # 尝试使用zarr.open_group
+            group = zarr.open_group(os.path.expanduser(zarr_path), mode=mode)
+        except TypeError:
+            # 尝试使用zarr.open
+            group = zarr.open(os.path.expanduser(zarr_path), mode=mode)
         return cls.create_from_group(group, **kwargs)
 
     # ============= copy constructors ===============
@@ -287,7 +293,14 @@ class ReplayBuffer:
         if_exists="replace",
         **kwargs,
     ):
-        store = zarr.DirectoryStore(os.path.expanduser(zarr_path))
+        # 兼容不同zarr版本的DirectoryStore
+        try:
+            # 尝试直接从zarr导入
+            store = zarr.DirectoryStore(os.path.expanduser(zarr_path))
+        except AttributeError:
+            # 尝试从zarr.storage导入
+            from zarr.storage import DirectoryStore
+            store = DirectoryStore(os.path.expanduser(zarr_path))
         return self.save_to_store(store, chunks=chunks, compressors=compressors, if_exists=if_exists, **kwargs)
 
     @staticmethod

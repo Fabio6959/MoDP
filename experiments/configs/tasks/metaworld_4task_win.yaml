@@ -1,0 +1,19 @@
+# @package _global_
+
+dataset_generator_func: null
+
+rollout_runner:
+  _target_: env.mujoco.metaworld.rollout_runner.RolloutRunner
+  episode_num: 30
+  env_names: ["reach-v2", "push-v2", "button-press-topdown-v2", "door-open-v2" ]
+  save_video: False
+
+train:
+  total_epochs: 200
+  total_iters: 10000
+  epoch_iters: 1000
+  validation_iters: 100
+  pretrained_dir: ""
+  freeze_trunk: False
+domains: metaworld_4task
+env_names: ${rollout_runner.env_names}

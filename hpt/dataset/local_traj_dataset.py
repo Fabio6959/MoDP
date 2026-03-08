@@ -215,7 +215,13 @@ class LocalTrajDataset:
         # loading datasets
         if not load_from_cache:
             self.create_replaybuffer_from_env(env_rollout_fn)
-
+        
+        # 检查是否有数据
+        n_episodes = self.replay_buffer.n_episodes
+        if n_episodes == 0 and load_from_cache:
+            # 如果从缓存加载但没有数据，尝试创建空的
+            print("Warning: Loaded empty dataset from cache!")
+        
         self.get_training_dataset(val_ratio, seed)
         print("data keys:", self.replay_buffer.data.keys())
         self.get_sa_dim()
@@ -229,6 +235,17 @@ class LocalTrajDataset:
             state_dim (int): The dimension of the state.
             num_views (int): The number of views (if images are present in the dataset).
         """
+        if self.replay_buffer.n_episodes == 0 or len(self) == 0:
+            # 如果没有数据，设置默认维度（MetaWorld的action是4维，state是39维）
+            print("Warning: No data in dataset, using default dimensions!")
+            self.action_dim = 4
+            self.one_action_dim = 4
+            if self.action_multiple_horizon:
+                self.action_dim *= self.action_horizon
+            self.state_dim = 39
+            self.num_views = 1
+            return
+            
         self.action_dim = self[0]["data"]["action"].shape[-1]
         self.one_action_dim = self[0]["data"]["action"].shape[-1]
 
